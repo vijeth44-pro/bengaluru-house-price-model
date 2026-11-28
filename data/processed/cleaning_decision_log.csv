@@ -1,14 +1,13 @@
-problem,evidence,proposed_decision,reason
-Missing location,1 raw row,Drop in analysis copy,Location is required for location analysis and prediction
-Missing size,16 raw rows,No value invented; derive BHK only where size exists,Avoid fabricating bedroom counts
-Missing society,5502 raw rows,Keep missing; do not use as a Phase 2 baseline feature,Too much missingness to impute reliably
-Missing bath,73 raw rows,Drop rows because bath is needed for domain checks,Arbitrary bathroom imputation could distort price patterns
-Missing balcony,609 raw rows,Keep missing in the cleaned EDA copy,Balcony was not needed for core cleaning decisions
-Exact duplicates,530 exact duplicates after text trimming,Remove duplicate rows,Repeated listings are not independent observations
-total_sqft ranges,Range values present,Use midpoint of range,A midpoint is transparent and reproducible
-total_sqft units,"Meter, yard, acre, cent, guntha, ground and perch forms",Convert to square feet,Enable comparable area measurements
-Unconverted total_sqft,Any remaining non-numeric value,Treat as missing and exclude if required,Do not silently guess units
-Outlier: area per BHK,Rows below 300 sqft per BHK,Remove,Likely data errors or implausible listings
-Outlier: bath count,Bath count greater than BHK + 2,Remove,Implausible for this dataset
-Outlier: price_per_sqft,Outside 500-100000 rupees/sqft,Remove,Domain limits exclude implausible extreme values
-Rare locations,Location count below 10,Group as 'other',Prevent high-dimensional sparse location categories
+problem,evidence,decision,reason
+Missing location,1,Exclude rows with no location,Location is needed for interpretation and modeling
+Missing size,16,Do not invent BHK; exclude if BHK is required,Avoid fabricating bedroom counts
+Missing society,5502,Keep missing; not used in baseline model,High missingness makes reliable imputation difficult
+Missing bath,73,Exclude rows for this analysis,Bathroom count is used in plausibility checks
+Missing balcony,609,Keep missing in cleaned data,Not needed for the Phase 1 cleaning checks
+Duplicates after text trimming,530,Keep one copy,Repeated listings should not be counted more than once
+Area ranges,Present in total_sqft,Use midpoint,Transparent single-number representation
+Mixed area units,Present in total_sqft,Convert supported units to square feet,Put area values on a common scale
+Area per BHK below 300 sqft,Rule-based check,Exclude,Project plausibility screen; review if domain evidence changes
+Bath count greater than BHK + 2,Rule-based check,Exclude,Project plausibility screen
+Price per sqft outside Rs 500-100000,Rule-based check,Exclude,Project plausibility screen
+Location appears fewer than 10 times,Calculated after cleaning,Group as other,Reduce very sparse location categories
