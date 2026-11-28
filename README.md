@@ -1,48 +1,47 @@
-# Bengaluru House Price Model
+# Bengaluru House Price Project
 
-A student project exploring Bengaluru residential listing data and building regression models to estimate listed property prices from property attributes.
+This is a student project about Bengaluru house prices. It looks at past property listings and explores whether details such as area, location, and number of bedrooms can help estimate a property's listed price.
 
-> **Use limitation:** This is an educational prototype, not a professional property valuation. Predictions are estimates from historical listing data and may not reflect current market prices.
+This project is for learning. Its estimates are not official property valuations and may not match today's market prices.
 
-## Project question
+## What question does the project explore?
 
-Can we estimate a Bengaluru property's listed price using its locality, area type, bedroom count, bathrooms, balconies, and area in square feet?
+Can we estimate a listed property's price from its location, property type, bedroom count, bathrooms, balconies, and area?
 
-- **Target:** `price`, recorded in lakh rupees.
-- **Unit of prediction:** one property listing.
-- **Source data:** 13,320 rows in the original CSV.
-- **Analysis data:** 11,947 rows after the documented Phase 1 cleaning steps.
+- **What we predict:** `price`, recorded in lakh rupees.
+- **One prediction means:** an estimate for one property listing.
+- The original file has **13,320 rows**. The current cleaned file has **11,947 rows**.
 
-## Dataset and attribution
+## Where does the data come from?
 
-The project uses `Bengaluru_House_Data.csv`, downloaded from the Kaggle dataset page:
+The file `Bengaluru_House_Data.csv` came from this Kaggle dataset page:
 
-<https://www.kaggle.com/datasets/pulakdroy/final-dataset>
+<https://www.kaggle.com/datasets/amitabhajoy/bengaluru-house-price-data>
 
-The Kaggle page lists the dataset under the Apache-2.0 license. Check the source page for current terms before redistribution or reuse. The CSV is included here for reproducibility and remains unchanged in `data/raw/`. The source dataset is not authored by this project.
+The page lists the dataset under the Apache-2.0 license. Check the page for the latest terms before reusing or sharing the data.
 
-## Repository layout
+## What is in the project folder?
 
 ```text
 data/
-  raw/                 Original source CSV (unchanged)
-  processed/           Cleaned data and Phase 1 reports
-notebooks/             Phase 1 EDA and Phase 2 modeling notebooks
-models/                Model comparison, tuning results, feature importance, saved pipeline
-reports/charts/        Phase 1 EDA and model charts
-phase1_analysis.py     Reproducible profiling, cleaning, EDA and statistics
-phase2_modeling.py     Train/test split, model comparison and Random Forest tuning
+  raw/                 Original data file
+  processed/           Cleaned data and data reports
+notebooks/             Phase 1 and Phase 2 notebooks
+models/                Model results and saved prediction model
+reports/charts/        Charts made during the analysis
+phase1_analysis.py     Cleans and studies the data
+phase2_modeling.py     Trains and compares prediction models
 ```
 
-## Setup
+## Set up the project
 
-Python 3.10 or newer is recommended.
+Use Python 3.10 or newer. Open a terminal in this project folder and create a separate Python environment:
 
 ```bash
 python -m venv .venv
 ```
 
-Activate it:
+Turn on the environment:
 
 ```powershell
 # Windows PowerShell
@@ -50,89 +49,82 @@ Activate it:
 ```
 
 ```bash
-# macOS / Linux
+# macOS or Linux
 source .venv/bin/activate
 ```
 
-Install dependencies:
+Install the project's Python packages:
 
 ```bash
 python -m pip install -r requirements.txt
 ```
-## Run tests
 
-```bash
-python -m pytest -v
-```
+## Phase 1: clean and understand the data
 
-## Reproduce Phase 1
-
-From the repository root:
+Run this command from the project folder:
 
 ```bash
 python phase1_analysis.py
 ```
 
-This reads the raw CSV without modifying it and regenerates:
+The script reads the original CSV and creates an analysis copy. It does not change the original file. It makes:
 
-- Cleaned analysis dataset: `data/processed/bengaluru_house_cleaned.csv`
-- Data dictionary, quality summary and cleaning decision log
-- Descriptive statistics and Kruskal-Wallis test result
-- Eight EDA charts under `reports/charts/`
+- A cleaned dataset: `data/processed/bengaluru_house_cleaned.csv`
+- A data dictionary that explains the columns
+- Reports showing missing data and cleaning decisions
+- Summary numbers and a statistical test result
+- Eight charts in `reports/charts/`
 
-Key transformations include extracting numeric BHK, interpreting square-foot ranges by their midpoint, converting supported area units to square feet, removing exact duplicates, checking domain outliers, and grouping locations with fewer than ten listings. See `data/processed/cleaning_decision_log.csv` for decisions and reasons.
+Some data needs to be made easier to work with. For example, the script gets the bedroom count from text such as `2 BHK`, converts area values to square feet, and uses the middle of an area range such as `1115 - 1130`. It also removes repeated rows and some records that fail the project's data checks. The cleaning decisions and reasons are recorded in `data/processed/cleaning_decision_log.csv`.
 
-## Reproduce Phase 2
+## Phase 2: train and compare prediction models
 
-Run Phase 1 first if the processed dataset is missing, then run:
+Run Phase 1 first if the cleaned data file is missing. Then run:
 
 ```bash
 python phase2_modeling.py
 ```
 
-The model uses these features:
+The models use these property details:
 
-- `location_grouped`
-- `area_type`
-- `bhk`
-- `bath`
-- `balcony`
-- `total_sqft_numeric`
+- `location_grouped` — the locality, with uncommon localities grouped as `other`
+- `area_type` — the type of area listing
+- `bhk` — number of bedrooms
+- `bath` — number of bathrooms
+- `balcony` — number of balconies
+- `total_sqft_numeric` — area in square feet
 
-The target is `price`. The target-derived `price_per_sqft` feature is intentionally excluded to prevent target leakage. A fixed 80/20 train/test split (random state 42) is used. Missing-value handling and categorical one-hot encoding are fitted inside a scikit-learn pipeline on training data.
+The value being predicted is `price`. The script does **not** use `price_per_sqft` as an input because that value is calculated from the price we are trying to predict. Using it would give the model information about its answer.
 
-The script compares Ridge Regression, Random Forest and Gradient Boosting, tunes Random Forest with 3-fold cross-validation, and saves:
+The data is split into training and test groups. The models learn from the training group; the test group is held aside to check how well they predict listings they did not train on. The script compares Ridge Regression, Random Forest, and Gradient Boosting. It also tries different Random Forest settings using cross-validation, a way to compare settings across several training-data splits.
 
-- `models/model_comparison.csv`
-- `models/random_forest_tuning.json`
-- `models/feature_importance.csv`
-- `models/bengaluru_house_price_model.joblib`
+The results are saved in:
 
-### Current model results
+- `models/model_comparison.csv` — scores for the models
+- `models/random_forest_tuning.json` — the chosen Random Forest settings and scores
+- `models/feature_importance.csv` — which inputs the Random Forest relied on most
+- `models/bengaluru_house_price_model.joblib` — the saved Random Forest model and its input-processing steps
 
-On the current holdout split, Gradient Boosting has the lowest RMSE (103.91 lakh) and the highest R² (0.591). The tuned Random Forest has MAE 36.03 lakh, RMSE 109.09 lakh and R² 0.549. The saved model file currently contains the tuned Random Forest, not the lowest-RMSE model; final model selection is still an open decision. Metrics are not guarantees for individual predictions.
+### Results so far
 
-## Notebooks and presentation
+On the current test data:
 
-Open the notebooks in `notebooks/` with Jupyter or the VS Code Jupyter extension. Select the project's Python environment as the kernel, then run cells from top to bottom.
+- **Gradient Boosting** has the lowest RMSE (**103.91 lakh**) and highest R² (**0.591**) among the three original comparisons.
+- The **tuned Random Forest** has MAE **36.03 lakh**, RMSE **109.09 lakh**, and R² **0.549**.
 
-- `Bengaluru_House_Price_Phase1_EDA.ipynb`
-- `Bengaluru_House_Price_Phase2_Modeling.ipynb`
+MAE and RMSE describe prediction errors in lakh rupees; lower is better. R² describes how much of the price variation the model explains; higher is better. The saved model file is currently the tuned Random Forest, even though Gradient Boosting has the better RMSE in the current comparison. The team still needs to decide which model to choose and explain why. These scores are overall test results, not promises about an individual property's estimate.
 
-The Phase 2 slide deck is `Bengaluru_House_Price_Phase2_Review.pptx`. Regenerate it after running Phase 1 and Phase 2:
+## Notebooks and slides
 
-```bash
-python create_phase2_presentation.py
-```
+You can open the notebooks using Jupyter or the Jupyter extension in VS Code. Choose the project's Python environment as the notebook kernel, then run cells from top to bottom:
 
-## Current scope and limitations
+- `notebooks/Bengaluru_House_Price_Phase1_EDA.ipynb`
+- `notebooks/Bengaluru_House_Price_Phase2_Modeling.ipynb`
 
-Implemented: Phase 1 data preparation, exploratory analysis and statistics; Phase 2 regression baselines, model comparison, Random Forest tuning, and a serialized prediction pipeline.
+## What is done and what is still planned?
 
-Not implemented yet: neural-network/DL experiment, GenAI assistant, FastAPI service, Streamlit application, Docker packaging, or cloud deployment.
+The project currently includes data cleaning, charts and statistics, and an initial comparison of house-price prediction models. A Random Forest model has also been tuned and saved.
 
-The data is cross-sectional listing data and does not provide a reliable date feature for time-based validation. Price values are right-skewed and contain high-end properties, so RMSE is sensitive to large errors. Feature importance indicates how the fitted Random Forest used features; it does not establish causation.
+The following parts are **not built yet**: a neural-network model, a GenAI assistant, a FastAPI service, a Streamlit website, Docker packaging, or cloud deployment.
 
-## Team contributions
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for suggested, independently verifiable work. Contributors should use their own GitHub accounts and describe only the work they actually completed.
+The dataset does not have a reliable date for each listing, so this project cannot yet test its predictions on a later time period. Prices vary a lot, including some very expensive listings, which can make large prediction errors affect RMSE. Feature importance describes how this Random Forest used the data; it does not prove that a feature causes a price to change.
